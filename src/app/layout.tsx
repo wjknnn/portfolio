@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
 import './globals.css';
-import { Navigator } from '@/components';
+import { Dock } from '@/components';
 
 const Pretendard = localFont({ src: './PretendardVariable.woff2' });
 
@@ -18,7 +18,7 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={Pretendard.className}>
-        <Navigator />
+        <Dock />
         {children}
       </body>
     </html>
