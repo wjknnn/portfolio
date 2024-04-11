@@ -21,7 +21,7 @@ export const Dock = () => {
       <nav
         onMouseMove={(event) => setX(event.clientX)}
         onMouseLeave={() => setX(null)}
-        className="flex bg-black bg-opacity-40 backdrop-blur-xl border border-zinc-800 text-zinc-400 p-2 rounded-full gap-[8px] items-end h-[58px]"
+        className="flex bg-black bg-opacity-40 backdrop-blur-xl border border-white border-opacity-[0.12] text-zinc-400 p-2 rounded-[16px] gap-[8px] items-end h-[66px] hover:px-[16px]"
       >
         {apps.map((value, idx) => (
           <DockItem appInfo={value} key={idx} mouseX={x} />

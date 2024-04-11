@@ -1,9 +1,10 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { interpolate, spring } from 'popmotion';
 import Link from 'next/link';
 import { appType } from './Dock';
+import { useState, useEffect, useRef } from 'react';
+import { interpolate } from 'popmotion';
 import { Icon } from '@/assets/Icon';
 import styles from '@/styles/dock.module.css';
+import { throttle } from 'lodash';
 
 const DockItem = ({
   appInfo,
@@ -14,7 +15,7 @@ const DockItem = ({
 }) => {
   const elRef = useRef<HTMLDivElement>(null);
   const [distance, setDistance] = useState<number>(Infinity);
-  const baseWidth = 57.6;
+  const baseWidth = 36;
   const distanceLimit = baseWidth * 6;
   const beyondTheDistanceLimit = distanceLimit + 1;
   const distanceInput = [
@@ -38,45 +39,44 @@ const DockItem = ({
 
   const [widthPX, setWidthPX] = useState<number>(baseWidth);
 
-  const animate = useCallback(() => {
-    if (elRef.current && mouseX !== null) {
-      const rect = elRef.current.getBoundingClientRect();
-      const imgCenterX = rect.left + rect.width / 2;
-      const distanceDelta = mouseX - imgCenterX;
-      setDistance(distanceDelta);
-    } else {
-      setDistance(beyondTheDistanceLimit);
-    }
-  }, [mouseX]);
+  const throttledAnimate = useRef(
+    throttle((mouseX: number | null) => {
+      if (elRef.current && mouseX !== null) {
+        const rect = elRef.current.getBoundingClientRect();
+        const imgCenterX = rect.left + rect.width / 2;
+        const distanceDelta = mouseX - imgCenterX;
+        setDistance(distanceDelta);
+      } else {
+        setDistance(beyondTheDistanceLimit);
+      }
+    }, 100)
+  ); // 100ms 간격으로 호출하는 throttle 설정
 
   useEffect(() => {
-    const raf = requestAnimationFrame(animate);
-    return () => cancelAnimationFrame(raf);
-  }, [animate]);
+    throttledAnimate.current(mouseX);
+  }, [mouseX]); // 컴포넌트가 마운트될 때만 이벤트 리스너 등록
 
   useEffect(() => {
     const interpolatedWidth = interpolate(distanceInput, widthOutput)(distance);
-    setWidthPX((prevWidth) => {
-      if (prevWidth !== interpolatedWidth) {
-        return interpolatedWidth;
-      }
-      return prevWidth;
-    });
+    setWidthPX(interpolatedWidth);
   }, [distance]);
 
-  const width = `${widthPX / 16}rem`;
+  const width = widthPX / 16;
 
   return (
     <section>
       <Link
         href={appInfo.url}
         className={styles.dockButton}
-        // className="h-[40px] w-[40px] bg-zinc-900 border border-zinc-700 rounded-full flex justify-center items-center"
+        style={{
+          borderRadius: `${width * 4}px`,
+          padding: `${width * 3 - 2}px`,
+        }}
       >
         <div ref={elRef}>
           <Icon
             className={styles.appIcon}
-            style={{ width }}
+            style={{ width: `${width}rem` }}
             name={appInfo.name}
           />
         </div>
